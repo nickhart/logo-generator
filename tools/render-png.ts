@@ -72,22 +72,27 @@ const outPath =
 
 const mesh = buildLogo(DEFAULT_LOGO_OPTIONS);
 
-// Centre the model and note its radius, so the camera can frame it rather than
-// relying on a hand-tuned distance that breaks whenever the metrics change.
-let minY = Infinity;
-let maxY = -Infinity;
+// Centre the model on its own bounding box and note its radius, so the camera
+// frames whatever the placements produce rather than assuming the model
+// straddles the origin.
+let minB = { x: Infinity, y: Infinity, z: Infinity };
+let maxB = { x: -Infinity, y: -Infinity, z: -Infinity };
 for (const t of mesh.triangles) {
   for (const v of [t.a, t.b, t.c]) {
-    minY = Math.min(minY, v.y);
-    maxY = Math.max(maxY, v.y);
+    minB = { x: Math.min(minB.x, v.x), y: Math.min(minB.y, v.y), z: Math.min(minB.z, v.z) };
+    maxB = { x: Math.max(maxB.x, v.x), y: Math.max(maxB.y, v.y), z: Math.max(maxB.z, v.z) };
   }
 }
-const midY = (minY + maxY) / 2;
+const centre: Vec3 = {
+  x: (minB.x + maxB.x) / 2,
+  y: (minB.y + maxB.y) / 2,
+  z: (minB.z + maxB.z) / 2,
+};
 
 let radius = 0;
 for (const t of mesh.triangles) {
   for (const v of [t.a, t.b, t.c]) {
-    radius = Math.max(radius, Math.hypot(v.x, v.y - midY, v.z));
+    radius = Math.max(radius, Math.hypot(v.x - centre.x, v.y - centre.y, v.z - centre.z));
   }
 }
 
@@ -116,7 +121,7 @@ for (let i = 0; i < W * H; i++) {
 const depth = new Float64Array(W * H).fill(Infinity);
 
 const project = (p: Vec3): [number, number, number] | null => {
-  const rel = sub({ x: p.x, y: p.y - midY, z: p.z }, eye);
+  const rel = sub({ x: p.x - centre.x, y: p.y - centre.y, z: p.z - centre.z }, eye);
   const v = { x: dot(xAxis, rel), y: dot(yAxis, rel), z: dot(zAxis, rel) };
   if (v.z >= -1e-6) return null;
   return [

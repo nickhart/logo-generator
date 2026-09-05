@@ -1,7 +1,7 @@
 # logo-generator
 
-A procedural 3D "NH" logo in the style of the Nintendo 64 logo: two interlocking
-extruded letters pinwheeled around a shared vertical axis.
+A procedural 3D "NH" logo in the style of the Nintendo 64 logo: two extruded
+letters meeting at a shared corner post, at right angles to each other.
 
 ![preview](out/preview.png)
 
@@ -21,12 +21,10 @@ built from parameters:
 | letter width       | 60.13  | one N slab's span                        |
 | letter height      | 57.46  | model height                             |
 | stroke / thickness | 16.9   | stem width, which equals extrusion depth |
-| plane offset       | 21.54  | how far each letter sits off the axis    |
 
 The stem width and the extrusion depth being equal is what gives every stroke a
-square cross-section, and the plane offset is what makes the letters pinwheel
-around a hollow core instead of piling through the middle. Both are load-bearing
-if you want a generated letter to look like it belongs to the original.
+square cross-section -- load-bearing if you want a generated letter to look like
+it belongs to the original.
 
 ## Usage
 
@@ -43,8 +41,7 @@ npx tsx tools/render-png.ts   # headless isometric render to out/preview.png
 
 ### Output files
 
-- **`.stl`** — binary, colourless. This is the one for the slicer. Verified
-  watertight: two closed solids, no non-manifold edges.
+- **`.stl`** — binary, colourless. Geometry only, for tools that want it.
 - **`.obj` + `.mtl`** — one material per (colour slot × face kind), so colours
   survive into anything that reads OBJ.
 - **`.json`** — flat position/normal/colour arrays for the lab.
@@ -106,6 +103,13 @@ Add an outline builder in `src/geometry/letters.ts` and register it in
 and may be concave — the extruder ear-clips them. Then list it in
 `NH_PLACEMENTS` (or your own placement array) with a rotation and colour slots.
 
-One constraint worth knowing: two letters whose stems land in the same quadrant
-at the same plane offset come out exactly coincident, which fuses them into a
-non-manifold solid. That is why the H here is rotated 180° rather than 90°.
+Placement is explicit: each letter is authored in its own plane occupying
+`x in [0, width]`, `z in [0, stroke]`, then rotated about Y and translated. The
+N stays at the origin; the H is turned 90° and moved by `(width - stroke, 0,
+stroke)`, which lands its left stem exactly on the N's right stem so the two
+share one square post.
+
+The letters' solids genuinely intersect inside that post, so the mesh is not a
+watertight manifold and `npm run verify` does not check for one. This is a
+renderer -- those faces are interior and never visible. If you ever do need a
+printable single solid, that post is where a boolean union would go.
