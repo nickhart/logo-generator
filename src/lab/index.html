@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NH Logo Lab</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1c1f26; --line: #2c313b;
+    --text: #e7eaf0; --muted: #99a1b3; --accent: #5b8cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; display: flex;
+    background: var(--bg); color: var(--text);
+    font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  #stage { flex: 1; position: relative; min-width: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #panel {
+    width: 260px; flex-shrink: 0; padding: 18px;
+    background: var(--panel); border-left: 1px solid var(--line);
+    overflow-y: auto;
+  }
+  h1 { font-size: 14px; margin: 0 0 2px; letter-spacing: .02em; }
+  .sub { color: var(--muted); font-size: 11px; margin-bottom: 18px; }
+  h2 {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--muted); margin: 20px 0 8px; font-weight: 600;
+  }
+  .row { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+  .row label { flex: 1; color: var(--muted); font-size: 12px; }
+  input[type=color] {
+    width: 34px; height: 24px; padding: 0; border: 1px solid var(--line);
+    border-radius: 5px; background: none; cursor: pointer;
+  }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  button {
+    width: 100%; padding: 7px; margin-top: 6px; cursor: pointer;
+    background: #262b34; color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px; font-size: 12px;
+  }
+  button:hover { background: #2f3542; }
+  .stat { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+  .stat b { color: var(--text); font-weight: 500; }
+  .hint {
+    position: absolute; left: 14px; bottom: 12px;
+    color: var(--muted); font-size: 11px; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="gl"></canvas>
+    <div class="hint">drag to orbit &middot; scroll to zoom</div>
+  </div>
+  <div id="panel">
+    <h1>NH Logo Lab</h1>
+    <div class="sub">interlocked N + H</div>
+
+    <h2>Palette</h2>
+    <div id="slots"></div>
+
+    <h2>Shading</h2>
+    <div class="row"><label>back</label><span id="backVal" style="color:var(--muted)"></span></div>
+    <input type="range" id="back" min="0" max="1" step="0.01">
+    <div class="row"><label>side</label><span id="sideVal" style="color:var(--muted)"></span></div>
+    <input type="range" id="side" min="0" max="1" step="0.01">
+
+    <h2>View</h2>
+    <button id="iso">Isometric</button>
+    <button id="front">Front</button>
+    <button id="top">Top</button>
+    <button id="spin">Toggle spin</button>
+
+    <h2>Model</h2>
+    <div class="stat"><span>triangles</span><b id="tris">–</b></div>
+    <div class="stat"><span>size</span><b id="size">–</b></div>
+    <button id="copy">Copy palette JSON</button>
+  </div>
+  <script type="module" src="./lab.js"></script>
+</body>
+</html>
