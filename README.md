@@ -3,7 +3,7 @@
 A procedural 3D "NH" logo in the style of the Nintendo 64 logo: two extruded
 letters meeting at a shared corner post, at right angles to each other.
 
-![preview](out/preview.png)
+![NH logo, nightowl palette](assets/nh-logo.svg)
 
 ## What this is for
 
@@ -48,7 +48,14 @@ npm run lab               # interactive preview at http://localhost:5173
 npm run preview           # render to out/preview.png
 npm run svg               # vector logo to out/nh-logo.svg
 npm run favicon           # favicon.ico + PNGs + apple-touch-icon
+npm run assets            # regenerates the images this README embeds
 ```
+
+`assets/` is the one exception to everything under `out/` being generated and
+gitignored: `nh-logo.svg` and `nh-logo.png` are checked in, because a public
+repo's README needs an image GitHub can actually render. Run `npm run assets`
+after anything that changes how the logo looks -- a placement, a palette, the
+camera -- so they stay honest.
 
 | flag            | `generate` | `preview` | `svg` | `favicon` |
 | --------------- | ---------- | --------- | ----- | --------- |
@@ -93,7 +100,9 @@ span most of the view. So the exporter asks, for each overlapping pair, which
 face is nearer where they actually meet, and topologically sorts those
 constraints. Three pairs occlude each other both ways and have no correct order
 without splitting a triangle; those cycles are dropped and the depth sort stands
-in. The output matches the depth-buffered PNG pixel for pixel.
+in. The output matches the depth-buffered PNG pixel for pixel:
+
+<img src="assets/nh-logo.png" width="160" alt="rasterised, transparent PNG">
 
 **Favicons** (`npm run favicon`) writes a set:
 
