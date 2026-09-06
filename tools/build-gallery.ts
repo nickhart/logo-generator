@@ -31,12 +31,7 @@ const ISO_PITCH_DEG = 35.26;
 const write = (name: string, data: Buffer | string): void =>
   writeFileSync(join(outDir, name), data);
 
-// Vector, in both palettes, so the two colour models can be compared.
 write("nh-logo.svg", toSvg(mesh, palette, { width: 512, height: 512, fit: 0.04 }));
-write(
-  "nh-n64.svg",
-  toSvg(mesh, getPalette("n64"), { width: 512, height: 512, fit: 0.04 }),
-);
 
 // Raster, at the default angle and at a true isometric one for comparison.
 write("logo-800.png", renderPng(mesh, palette, { size: 800, transparent: true, fit: 0.04 }));
