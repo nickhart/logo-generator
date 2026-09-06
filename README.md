@@ -102,7 +102,7 @@ export const NIGHTOWL_PALETTE: DirectionPalette = {
   name: "nightowl",
   mode: "direction",
   colors: { north: blue, south: blue, east: purple, west: purple,
-            up: coral, down: amber, diagonal: teal },
+            up: teal, down: amber, diagonal: green },
 };
 ```
 
