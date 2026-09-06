@@ -80,12 +80,107 @@ function transformTriangle(
   };
 }
 
+const EPS = 1e-6;
+
+/** The square post where two walls of the box overlap, in the xz plane. */
+interface Post {
+  x: [number, number];
+  z: [number, number];
+}
+
+/**
+ * Where the walls overlap: the intersection of the letters' xz footprints.
+ *
+ * Derived rather than hardcoded so it stays correct if the placements move.
+ */
+function sharedPost(triangles: Triangle[], owners: number[]): Post | null {
+  const boxes = new Map<number, { x: [number, number]; z: [number, number] }>();
+  triangles.forEach((tri, i) => {
+    const owner = owners[i]!;
+    const box = boxes.get(owner) ?? {
+      x: [Infinity, -Infinity] as [number, number],
+      z: [Infinity, -Infinity] as [number, number],
+    };
+    for (const v of [tri.a, tri.b, tri.c]) {
+      box.x[0] = Math.min(box.x[0], v.x);
+      box.x[1] = Math.max(box.x[1], v.x);
+      box.z[0] = Math.min(box.z[0], v.z);
+      box.z[1] = Math.max(box.z[1], v.z);
+    }
+    boxes.set(owner, box);
+  });
+
+  const all = [...boxes.values()];
+  if (all.length < 2) return null;
+  const post: Post = {
+    x: [
+      Math.max(...all.map((b) => b.x[0])),
+      Math.min(...all.map((b) => b.x[1])),
+    ],
+    z: [
+      Math.max(...all.map((b) => b.z[0])),
+      Math.min(...all.map((b) => b.z[1])),
+    ],
+  };
+  const solid = post.x[1] - post.x[0] > EPS && post.z[1] - post.z[0] > EPS;
+  return solid ? post : null;
+}
+
+/**
+ * Drop the duplicated faces inside the shared corner post.
+ *
+ * Both letters model that post in full, so each of its six walls is covered
+ * twice, by coplanar faces pointing the same way. Those pairs z-fight, and on
+ * the post's outward walls they are on the silhouette where it shows.
+ *
+ * Two rules settle every wall:
+ *
+ * 1. A cap beats a side. On the four vertical walls each letter contributes one
+ *    or the other, so this picks a winner without ever touching a letter's own
+ *    readable face -- that face is always a cap.
+ * 2. The first placement owns the post's top and bottom. Those are side against
+ *    side, so rule 1 cannot break the tie; both letters tile the post's full
+ *    cross-section there, so either choice looks identical and the point is
+ *    just to pick one deterministically.
+ *
+ * This trades watertightness for a clean render, which is the right trade here:
+ * the output is a logo image, and the STL exists only because the reference
+ * model happened to be one. See the note at the top of the README.
+ */
+function cullPostFaces(triangles: Triangle[], owners: number[]): Triangle[] {
+  const post = sharedPost(triangles, owners);
+  if (!post) return triangles;
+
+  const inPost = (tri: Triangle): boolean =>
+    [tri.a, tri.b, tri.c].every(
+      (v) =>
+        v.x >= post.x[0] - EPS &&
+        v.x <= post.x[1] + EPS &&
+        v.z >= post.z[0] - EPS &&
+        v.z <= post.z[1] + EPS,
+    );
+
+  const firstOwner = owners[0]!;
+  return triangles.filter((tri, i) => {
+    if (!inPost(tri)) return true;
+    const horizontal = Math.abs(tri.normal.y) > 0.5;
+    // Rule 2: the post's end caps belong to whichever letter was placed first.
+    if (horizontal) return owners[i] === firstOwner;
+    // Rule 1: on the vertical walls, the letter's face outranks the other's
+    // extruded side wall.
+    return tri.kind !== "side";
+  });
+}
+
 /** Build the composed logo mesh. */
 export function buildLogo(options: LogoOptions = DEFAULT_LOGO_OPTIONS): Mesh {
   const { metrics, placements } = options;
   const triangles: Triangle[] = [];
+  // Which placement each triangle came from, so the cull can tell the two
+  // letters' contributions apart.
+  const owners: number[] = [];
 
-  for (const placement of placements) {
+  placements.forEach((placement, index) => {
     const outline = letterOutline(placement.letter, metrics);
     const solid = extrude(outline, {
       // Square stroke section, as in the original.
@@ -108,10 +203,11 @@ export function buildLogo(options: LogoOptions = DEFAULT_LOGO_OPTIONS): Mesh {
         c: translate(tri.c, toOrigin),
       };
       triangles.push(transformTriangle(based, angleRad, placement.translate));
+      owners.push(index);
     }
-  }
+  });
 
-  return { triangles };
+  return { triangles: cullPostFaces(triangles, owners) };
 }
 
 export interface Bounds {

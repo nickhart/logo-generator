@@ -5,6 +5,18 @@ letters meeting at a shared corner post, at right angles to each other.
 
 ![preview](out/preview.png)
 
+## What this is for
+
+**The output is a logo image.** The geometry is 3D only because the logo is, and
+it exists to be rendered — not to be printed, not to be dropped into a game or a
+scene. Nothing here needs to be a watertight, manifold solid, and the generator
+deliberately gives that up where doing so makes the render cleaner (see
+[Culling](#the-shared-post-and-culling)).
+
+The 3D-printable reference model is exactly that: a **reference**, the source of
+the measurements below. It is not the thing being produced. If you ever do want
+a printable solid out of this, expect to add a boolean union first.
+
 ## Where this came from
 
 `reference/N64-Logo/` holds the original model by Shadowth117 (no credit
@@ -41,7 +53,9 @@ npx tsx tools/render-png.ts   # headless isometric render to out/preview.png
 
 ### Output files
 
-- **`.stl`** — binary, colourless. Geometry only, for tools that want it.
+- **`.stl`** — binary, colourless. Geometry only, for tools that want it. Not
+  print-ready: the letters overlap and the shared post is culled, so this is not
+  a closed solid.
 - **`.obj` + `.mtl`** — one material per (colour slot × face kind), so colours
   survive into anything that reads OBJ.
 - **`.json`** — flat position/normal/colour arrays for the lab.
@@ -121,10 +135,27 @@ derive that outline is to reflect the unmirrored trace (`x -> w - x`) and
 reverse the point order to preserve winding; tracing it freehand tends to
 produce a self-intersecting polygon.
 
+### The shared post, and culling
+
 The letters' solids genuinely intersect inside the shared post, so the mesh is
-not a watertight manifold and `npm run verify` does not check for one. Most of
-those faces are interior and never visible, but the ones on the post's two
-outward walls are coincident and z-fight in the preview. The original avoids
-this by being a single fused 48-vertex mesh rather than overlapping solids; if
-you ever need a printable single solid, that post is where a boolean union would
-go.
+not a watertight manifold and `npm run verify` does not check for one.
+
+Both letters model that post in full, which means each of its six walls is
+covered twice over, by coplanar faces pointing the same way. Left alone those
+pairs z-fight, and on the post's two outward walls they sit right on the
+silhouette where it shows. `cullPostFaces` in `src/geometry/compose.ts` drops
+the duplicates, by two rules:
+
+1. **A cap beats a side.** On the four vertical walls, each letter contributes
+   one or the other, so this always picks a winner — and never touches a
+   letter's own readable face, because that face is always a cap.
+2. **The first placement owns the post's top and bottom.** Those are side
+   against side, so rule 1 cannot break the tie. Both letters tile the post's
+   full cross-section there, so either choice renders identically; the rule just
+   needs to be deterministic.
+
+That takes the NH logo from 80 triangles to 66, removing nothing that was
+visible. It also makes the mesh *less* watertight — which is fine here, per
+[What this is for](#what-this-is-for). The original model sidesteps the whole
+problem by being one fused mesh instead of two overlapping solids, and a boolean
+union at that post is what a printable version would want instead.
