@@ -93,7 +93,8 @@ const NIGHT_OWL = {
  * Every face is a mid-tone. Navy started out on the east/west faces, but it is
  * the scheme's background value: against a dark ground those faces dropped out
  * entirely, and the logo lost a whole letter. It stays in `swatches` as the
- * backdrop colour it is, and coral is the one hue still spare.
+ * backdrop colour it is, along with coral -- the two hues this arrangement
+ * does not use.
  */
 export const NIGHTOWL_PALETTE: DirectionPalette = {
   name: "nightowl",
@@ -101,9 +102,9 @@ export const NIGHTOWL_PALETTE: DirectionPalette = {
   colors: {
     north: NIGHT_OWL.blue,
     south: NIGHT_OWL.blue,
-    east: NIGHT_OWL.purple,
-    west: NIGHT_OWL.purple,
-    up: NIGHT_OWL.teal,
+    east: NIGHT_OWL.teal,
+    west: NIGHT_OWL.teal,
+    up: NIGHT_OWL.purple,
     down: NIGHT_OWL.amber,
     diagonal: NIGHT_OWL.green,
   },
