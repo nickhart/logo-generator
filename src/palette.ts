@@ -88,9 +88,12 @@ const NIGHT_OWL = {
  * Night Owl, coloured by face direction.
  *
  * Opposite faces share a colour -- north with south, east with west -- so the
- * logo reads the same from the front and from behind. Green and amber are in
- * the palette but unused by this arrangement; they are the obvious candidates
- * if the backs should ever be distinguished from the fronts.
+ * logo reads the same from the front and from behind.
+ *
+ * Every face is a mid-tone. Navy started out on the east/west faces, but it is
+ * the scheme's background value: against a dark ground those faces dropped out
+ * entirely, and the logo lost a whole letter. It stays in `swatches` as the
+ * backdrop colour it is, and green is the one hue still spare.
  */
 export const NIGHTOWL_PALETTE: DirectionPalette = {
   name: "nightowl",
@@ -98,10 +101,10 @@ export const NIGHTOWL_PALETTE: DirectionPalette = {
   colors: {
     north: NIGHT_OWL.blue,
     south: NIGHT_OWL.blue,
-    east: NIGHT_OWL.navy,
-    west: NIGHT_OWL.navy,
-    up: NIGHT_OWL.purple,
-    down: NIGHT_OWL.coral,
+    east: NIGHT_OWL.purple,
+    west: NIGHT_OWL.purple,
+    up: NIGHT_OWL.coral,
+    down: NIGHT_OWL.amber,
     diagonal: NIGHT_OWL.teal,
   },
   swatches: NIGHT_OWL,

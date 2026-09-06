@@ -101,10 +101,16 @@ single object rather than as two separately-painted letters.
 export const NIGHTOWL_PALETTE: DirectionPalette = {
   name: "nightowl",
   mode: "direction",
-  colors: { north: blue, south: blue, east: navy, west: navy,
-            up: purple, down: coral, diagonal: teal },
+  colors: { north: blue, south: blue, east: purple, west: purple,
+            up: coral, down: amber, diagonal: teal },
 };
 ```
+
+Every face is a mid-tone, deliberately. Navy sat on the east/west faces at
+first, but it is the scheme's *background* value: against a dark ground those
+faces dropped out and the logo lost a whole letter. Keeping every face clear of
+the background's value is what lets the logo survive any backdrop — which the
+lab's Backdrop button is there to check.
 
 These are **flat** — no shading table, and the renderers skip their lighting
 term. Stepping brightness per face kind would make two faces of the same
