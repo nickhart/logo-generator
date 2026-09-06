@@ -13,6 +13,7 @@
     "preview": "tsx tools/render-png.ts",
     "svg": "tsx tools/render-svg.ts",
     "favicon": "tsx tools/render-favicon.ts",
+    "gallery": "tsx tools/build-gallery.ts && python3 -m http.server 5174 --directory out/gallery",
     "outline": "tsx tools/preview-ascii.ts"
   },
   "devDependencies": {

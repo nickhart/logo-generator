@@ -13,6 +13,12 @@
       "runtimeArgs": ["run", "lab"],
       "env": { "PALETTE": "nightowl" },
       "port": 5173
+    },
+    {
+      "name": "gallery",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "gallery"],
+      "port": 5174
     }
   ]
 }

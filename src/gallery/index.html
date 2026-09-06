@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NH logo — output</title>
+<link rel="icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root {
+    --bg: #f4f6fa; --panel: #fff; --line: #dfe3ea;
+    --text: #1d2430; --muted: #6b7385; --navy: #011627;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 28px 64px;
+    background: var(--bg); color: var(--text);
+    font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  header { max-width: 1100px; margin: 0 auto 28px; }
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 13px; }
+  main { max-width: 1100px; margin: 0 auto; }
+  section {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px 22px; margin-bottom: 18px;
+  }
+  h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--muted); margin: 0 0 14px; font-weight: 600;
+  }
+  .note { color: var(--muted); font-size: 12.5px; margin: 12px 0 0; }
+  .row { display: flex; gap: 22px; align-items: flex-end; flex-wrap: wrap; }
+  figure { margin: 0; text-align: center; }
+  figcaption { margin-top: 7px; color: var(--muted); font-size: 11.5px; }
+  img { display: block; }
+
+  /* Checkerboard, so transparency is visible rather than assumed. */
+  .checker {
+    --c1: #eceff4; --c2: #ffffff;
+    background: repeating-conic-gradient(var(--c1) 0% 25%, var(--c2) 0% 50%) 0 0 / 20px 20px;
+    border-radius: 10px; padding: 14px;
+  }
+  .dark { background: var(--navy); border-radius: 10px; padding: 14px; }
+  .dark figcaption { color: #8892a6; }
+
+  .stage { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .sw { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
+  .chip { width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--line); }
+  table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  th, td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  td.num { font-variant-numeric: tabular-nums; color: var(--muted); }
+  code {
+    font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #eef1f6; padding: 1px 5px; border-radius: 4px;
+  }
+  a { color: #2f6df6; }
+</style>
+</head>
+<body>
+<header>
+  <h1>NH logo — generated output</h1>
+  <div class="sub">nightowl palette · 20° camera · every file below came from <code>npm run svg</code> / <code>favicon</code> / <code>preview</code></div>
+</header>
+
+<main>
+  <section>
+    <h2>Vector — nh-logo.svg</h2>
+    <div class="stage">
+      <div class="checker">
+        <figure><img src="nh-logo.svg" width="300"><figcaption>on light (checker = transparent)</figcaption></figure>
+      </div>
+      <div class="dark">
+        <figure><img src="nh-logo.svg" width="300"><figcaption>on the palette's navy</figcaption></figure>
+      </div>
+    </div>
+    <p class="note">
+      5.3 kB, transparent, resolution-independent. Resize the window — it stays crisp.
+      <a href="nh-logo.svg">open the file</a>
+    </p>
+  </section>
+
+  <section>
+    <h2>Scaling — the same SVG at every size</h2>
+    <div class="row">
+      <figure><img src="nh-logo.svg" width="192"><figcaption>192</figcaption></figure>
+      <figure><img src="nh-logo.svg" width="96"><figcaption>96</figcaption></figure>
+      <figure><img src="nh-logo.svg" width="64"><figcaption>64</figcaption></figure>
+      <figure><img src="nh-logo.svg" width="32"><figcaption>32</figcaption></figure>
+      <figure><img src="nh-logo.svg" width="16"><figcaption>16</figcaption></figure>
+    </div>
+    <p class="note">
+      Legible down to about 32. At 16 it is a coloured blob — that is the artwork,
+      not the renderer: an isometric 3D NH holds more structure than 256 pixels can show.
+    </p>
+  </section>
+
+  <section>
+    <h2>Favicons — actual pixels, no scaling</h2>
+    <div class="stage">
+      <div class="checker">
+        <div class="row">
+          <figure><img src="favicon-16.png" width="16"><figcaption>16</figcaption></figure>
+          <figure><img src="favicon-32.png" width="32"><figcaption>32</figcaption></figure>
+          <figure><img src="favicon-192.png" width="192"><figcaption>192</figcaption></figure>
+        </div>
+      </div>
+      <div class="dark">
+        <div class="row">
+          <figure><img src="favicon-16.png" width="16"><figcaption>16</figcaption></figure>
+          <figure><img src="favicon-32.png" width="32"><figcaption>32</figcaption></figure>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      This page's own tab icon is <code>favicon.ico</code> (16/32/48 in one file) — look at the tab.
+    </p>
+  </section>
+
+  <section>
+    <h2>Apple touch icon — opaque, 180 px</h2>
+    <div class="row">
+      <figure>
+        <img src="apple-touch-icon.png" width="120" style="border-radius:27px">
+        <figcaption>as iOS rounds it</figcaption>
+      </figure>
+      <figure><img src="apple-touch-icon.png" width="120"><figcaption>the actual file</figcaption></figure>
+    </div>
+    <p class="note">
+      Opaque on purpose: iOS composites onto a tile, and a transparent icon comes out black.
+      It takes navy from the palette and gets extra margin for the rounding.
+    </p>
+  </section>
+
+  <section>
+    <h2>Camera angle</h2>
+    <div class="row">
+      <figure><img src="logo-800.png" width="260"><figcaption>20° — the default</figcaption></figure>
+      <figure><img src="logo-iso.png" width="260"><figcaption><code>--pitch 35.26</code> — true isometric</figcaption></figure>
+    </div>
+    <p class="note">
+      True isometric foreshortens all three axes equally, but the tops take nearly as
+      much area as the fronts and the letters squash. 20° gives the letterforms the picture.
+    </p>
+  </section>
+
+  <section>
+    <h2>Palettes</h2>
+    <div class="row">
+      <figure><img src="nh-logo.svg" width="200"><figcaption>nightowl · direction</figcaption></figure>
+      <figure><img src="nh-n64.svg" width="200"><figcaption>n64 · slot</figcaption></figure>
+    </div>
+    <table style="margin-top:16px">
+      <tr><th>direction</th><th>colour</th><th>what lands there</th></tr>
+      <tr><td><code>north</code> / <code>south</code></td>
+          <td><span class="sw"><span class="chip" style="background:#82aaff"></span>#82AAFF</span></td>
+          <td class="num">the N's face, and H side walls facing the same way</td></tr>
+      <tr><td><code>east</code> / <code>west</code></td>
+          <td><span class="sw"><span class="chip" style="background:#7fdbca"></span>#7FDBCA</span></td>
+          <td class="num">the H's face, and N side walls facing the same way</td></tr>
+      <tr><td><code>up</code></td>
+          <td><span class="sw"><span class="chip" style="background:#c792ea"></span>#C792EA</span></td>
+          <td class="num">every top, crossbar included</td></tr>
+      <tr><td><code>down</code></td>
+          <td><span class="sw"><span class="chip" style="background:#ffcb8b"></span>#FFCB8B</span></td>
+          <td class="num">every bottom, crossbar included</td></tr>
+      <tr><td><code>diagonal</code></td>
+          <td><span class="sw"><span class="chip" style="background:#addb67"></span>#ADDB67</span></td>
+          <td class="num">the long edges of the N's diagonal stroke</td></tr>
+    </table>
+    <p class="note">
+      Colour follows which way a face points, not which letter it belongs to — so the two
+      letters read as surfaces of one object. <code>#F78C6C</code> coral and
+      <code>#011627</code> navy are in the palette but unused by this arrangement.
+    </p>
+  </section>
+</main>
+</body>
+</html>
