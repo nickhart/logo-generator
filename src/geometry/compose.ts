@@ -24,29 +24,33 @@ export interface LogoOptions {
 }
 
 /**
- * The "NH" arrangement: the two letters meet at a single shared corner post and
- * touch nowhere else.
+ * The "NH" arrangement: two walls of the square tube the original logo builds
+ * out of four N's, with the other two walls left empty.
+ *
+ * Numbering the walls around the box, wall 1 is z in [0, s], wall 2 is
+ * x in [w - s, w], wall 3 is z in [w - s, w], and wall 4 is x in [0, s]. The H
+ * takes wall 2 and the N takes wall 3, so the two meet at the corner post
+ * x in [w - s, w], z in [w - s, w] -- where the N's own right stem lands.
  *
  * Each letter is authored in its own plane occupying x in [0, width] and
- * z in [0, stroke]. The N stays put, so its right stem is the box
- * x in [w - s, w], z in [0, s]. Turning the H 90 degrees about Y swings it into
- * the ZY plane; translating it by (w - s, 0, s) then drops its left stem onto
- * exactly that box. The letters share that one square post, stay perpendicular,
- * and never cut through each other's middles.
+ * z in [0, stroke]. Rotating the H by -90 degrees about Y swings its width onto
+ * +z, and translating by (w, 0, 0) lands it on wall 2. Rotating the N by 180
+ * degrees and translating by (w, 0, w) lands it on wall 3; the half turn is
+ * what points its face out of the box rather than into it.
  */
 export function nhPlacements(m: LetterMetrics): LetterPlacement[] {
   return [
     {
       letter: "N",
-      rotationDeg: 0,
-      translate: vec3(0, 0, 0),
+      rotationDeg: 180,
+      translate: vec3(m.width, 0, m.width),
       capSlot: 0,
       sideSlot: 1,
     },
     {
       letter: "H",
-      rotationDeg: 90,
-      translate: vec3(m.width - m.stroke, 0, m.stroke),
+      rotationDeg: -90,
+      translate: vec3(m.width, 0, 0),
       capSlot: 2,
       sideSlot: 3,
     },

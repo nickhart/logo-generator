@@ -104,12 +104,27 @@ and may be concave — the extruder ear-clips them. Then list it in
 `NH_PLACEMENTS` (or your own placement array) with a rotation and colour slots.
 
 Placement is explicit: each letter is authored in its own plane occupying
-`x in [0, width]`, `z in [0, stroke]`, then rotated about Y and translated. The
-N stays at the origin; the H is turned 90° and moved by `(width - stroke, 0,
-stroke)`, which lands its left stem exactly on the N's right stem so the two
-share one square post.
+`x in [0, width]`, `z in [0, stroke]`, then rotated about Y and translated.
 
-The letters' solids genuinely intersect inside that post, so the mesh is not a
-watertight manifold and `npm run verify` does not check for one. This is a
-renderer -- those faces are interior and never visible. If you ever do need a
-printable single solid, that post is where a boolean union would go.
+The original logo is a square tube built from four N's -- each letter is one
+wall, and adjacent walls meet at a shared corner post. This logo keeps two of
+those walls and leaves the other two empty. Numbering them around the box, wall
+1 is `z in [0, s]`, wall 2 is `x in [w - s, w]`, wall 3 is `z in [w - s, w]`,
+and wall 4 is `x in [0, s]`. The H takes wall 2 (turned -90°, moved by
+`(width, 0, 0)`) and the N takes wall 3 (turned 180°, moved by
+`(width, 0, width)`), so the two meet at one square post.
+
+The N's half turn is what points its face out of the box, and it also mirrors
+the letter -- so `outlineN` authors the diagonal mirrored, bottom-left to
+top-right, which is what makes it read as an N once placed. The reliable way to
+derive that outline is to reflect the unmirrored trace (`x -> w - x`) and
+reverse the point order to preserve winding; tracing it freehand tends to
+produce a self-intersecting polygon.
+
+The letters' solids genuinely intersect inside the shared post, so the mesh is
+not a watertight manifold and `npm run verify` does not check for one. Most of
+those faces are interior and never visible, but the ones on the post's two
+outward walls are coincident and z-fight in the preview. The original avoids
+this by being a single fused 48-vertex mesh rather than overlapping solids; if
+you ever need a printable single solid, that post is where a boolean union would
+go.

@@ -31,37 +31,44 @@ const p = (x: number, y: number): Vec2 => ({ x, y });
 
 /**
  * The N64 "N": two full-height stems joined by a diagonal that leaves the top of
- * the left stem and lands at the foot of the right one. Offsetting that centre
+ * the right stem and lands at the foot of the left one. Offsetting that centre
  * line by a stroke gives the diagonal's two long edges, which keeps it the same
  * visual weight as the stems.
+ *
+ * The diagonal runs this way -- rather than the top-left-to-bottom-right a
+ * standalone N would use -- because the logo's placement turns this letter a
+ * half turn to face out of the box, which mirrors it. Authoring it mirrored is
+ * what makes it read as an N once placed.
  */
 function outlineN(m: LetterMetrics): Outline {
   const { width: w, height: h, stroke: s } = m;
 
-  // The diagonal is a parallelogram of horizontal width `stroke` running from
-  // the letter's top-left corner down to its bottom-right: its upper face goes
-  // (0, h) -> (w - s, 0) and its lower face (s, h) -> (w, 0). Where those faces
+  // The diagonal is a parallelogram of horizontal width `stroke` rising from the
+  // letter's bottom-left corner to its top-right: its lower face goes
+  // (s, 0) -> (w, h) and its upper face (0, 0) -> (w - s, h). Where those faces
   // cross the stems' inner edges is what the outline needs, so solve for it
   // rather than baking in the heights.
   const yOn = (x: number, ax: number, ay: number, bx: number, by: number) =>
     ay + ((by - ay) * (x - ax)) / (bx - ax);
-  const upperAtLeftStem = yOn(s, 0, h, w - s, 0);
-  const lowerAtRightStem = yOn(w - s, s, h, w, 0);
+  const upperAtLeftStem = yOn(s, 0, 0, w - s, h);
+  const lowerAtRightStem = yOn(w - s, s, 0, w, h);
 
-  // Traced counter-clockwise from the bottom-left corner.
+  // Traced from the top-right corner. This is the unmirrored N's trace with
+  // every x reflected to w - x and the order reversed, which is what keeps the
+  // winding consistent with the other letters.
   return [
-    p(0, 0),
-    p(s, 0),
-    // Up the left stem's inner edge to the diagonal, then down its upper face.
-    p(s, upperAtLeftStem),
-    p(w - s, 0),
-    p(w, 0),
     p(w, h),
     p(w - s, h),
-    // Down the right stem's inner edge, then back up the diagonal's lower face.
-    p(w - s, lowerAtRightStem),
+    // Down the diagonal's upper face to the left stem, then up its inner edge.
+    p(s, upperAtLeftStem),
     p(s, h),
     p(0, h),
+    p(0, 0),
+    p(s, 0),
+    // Up the diagonal's lower face to the right stem, then down its inner edge.
+    p(w - s, lowerAtRightStem),
+    p(w - s, 0),
+    p(w, 0),
   ];
 }
 

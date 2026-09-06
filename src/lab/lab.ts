@@ -154,16 +154,20 @@ async function main() {
   }
   gl.useProgram(prog);
 
-  // Centre the model on the origin so orbiting feels anchored.
+  // Centre the model on the origin so orbiting feels anchored. All three axes
+  // matter: the logo is two walls of a box, so it is off-centre in x and z too.
   const pos = new Float32Array(mesh.positions);
-  let minY = Infinity;
-  let maxY = -Infinity;
-  for (let i = 1; i < pos.length; i += 3) {
-    minY = Math.min(minY, pos[i]!);
-    maxY = Math.max(maxY, pos[i]!);
+  const min = [Infinity, Infinity, Infinity];
+  const max = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < pos.length; i++) {
+    const axis = i % 3;
+    min[axis] = Math.min(min[axis]!, pos[i]!);
+    max[axis] = Math.max(max[axis]!, pos[i]!);
   }
-  const midY = (minY + maxY) / 2;
-  for (let i = 1; i < pos.length; i += 3) pos[i]! -= midY;
+  for (let i = 0; i < pos.length; i++) {
+    const axis = i % 3;
+    pos[i]! -= (min[axis]! + max[axis]!) / 2;
+  }
 
   const buf = (data: Float32Array, attr: string, size: number) => {
     const b = gl.createBuffer();
@@ -337,7 +341,9 @@ async function main() {
   });
 
   document.getElementById("tris")!.textContent = String(mesh.triangleCount);
-  document.getElementById("size")!.textContent = "60 × 57 × 60";
+  document.getElementById("size")!.textContent = [0, 1, 2]
+    .map((a) => Math.round(max[a]! - min[a]!))
+    .join(" × ");
 
   refreshColors();
   render();
