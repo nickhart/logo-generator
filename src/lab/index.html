@@ -41,6 +41,23 @@
   }
   .row { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
   .row label { flex: 1; color: var(--muted); font-size: 12px; }
+
+  /* One control per face group: its name, then the palette's hues to pick from. */
+  .swatchRow { margin-bottom: 10px; }
+  .swatchRow > label { color: var(--muted); font-size: 12px; }
+  .swatchRow { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; }
+  .swatchRow > label { grid-column: 1 / -1; }
+  .swatchRow .chips { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .chip {
+    width: 22px; height: 22px; padding: 0; flex: none; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 5px;
+  }
+  .chip:hover { transform: scale(1.12); }
+  /* The chosen hue gets a ring, so each row's current pick is obvious. */
+  .chip.on {
+    box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--accent);
+  }
+  .swatchRow input[type=color] { width: 22px; height: 22px; }
   input[type=color] {
     width: 34px; height: 24px; padding: 0; border: 1px solid var(--line);
     border-radius: 5px; background: none; cursor: pointer;

@@ -151,10 +151,17 @@ and paste the result.
 - opens on the **isometric** view (45° around, `atan(1/√2)` up), with front/top
   presets and a spin toggle
 - drag to orbit, scroll to zoom
-- live colour pickers — one per slot, or one per direction for a direction
-  palette — applying the same rules as `src/palette.ts` so the preview stays
-  honest. The back/side shading sliders appear only for slot palettes, being
-  meaningless for the flat ones.
+- one colour control per slot, or per direction for a direction palette,
+  applying the same rules as `src/palette.ts` so the preview stays honest. Each
+  offers the palette's **own named hues** as clickable chips, because assigning
+  colours is choosing which of a scheme's hues goes where — the colour input on
+  the right of each row is the escape hatch for anything off-palette. The
+  back/side shading sliders appear only for slot palettes, being meaningless
+  for the flat ones.
+- **Copy colors block** puts the current assignment on the clipboard as the
+  `colors: { ... }` source, hues named rather than spelled out, ready to paste
+  straight back into `src/palette.ts`. Trying arrangements in the lab and
+  pasting the winner is much faster than editing and restarting.
 - `PALETTE=nightowl npm run lab` previews a different palette
 - the canvas clears to **transparent**, and the Backdrop button cycles the
   stage behind it: checker (the image-editor convention for "empty", and a

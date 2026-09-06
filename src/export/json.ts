@@ -27,6 +27,15 @@ export interface MeshJson {
   /** The resolved swatches, for the lab's legend and its colour controls. */
   swatches: Swatch[];
   /**
+   * The palette's own named hues, whether or not this arrangement uses them.
+   *
+   * The lab offers these as the choices behind each control: assigning colours
+   * is picking which of a scheme's hues goes where, so a fixed set of named
+   * options is the right instrument for it -- a freeform colour picker invites
+   * hues that are not in the scheme at all.
+   */
+  namedColors: { name: string; hex: string }[];
+  /**
    * Which swatch each vertex belongs to, as an index into `swatches`.
    *
    * The lab recolours without re-fetching geometry, so it needs to know which
@@ -65,6 +74,15 @@ export function toJson(mesh: Mesh, palette: Palette): MeshJson {
     }
   }
 
+  // A slot palette has no named hues of its own, so fall back to its slots.
+  const namedColors =
+    palette.mode === "direction"
+      ? Object.entries(palette.swatches ?? {}).map(([name, c]) => ({
+          name,
+          hex: toHex(c),
+        }))
+      : palette.colors.map((c, i) => ({ name: `slot ${i}`, hex: toHex(c) }));
+
   return {
     palette: palette.name,
     mode: palette.mode,
@@ -74,5 +92,6 @@ export function toJson(mesh: Mesh, palette: Palette): MeshJson {
     colors,
     swatches,
     swatchOf,
+    namedColors,
   };
 }

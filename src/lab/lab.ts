@@ -26,6 +26,8 @@ interface MeshData {
   swatches: Swatch[];
   /** Which swatch each vertex belongs to, as an index into `swatches`. */
   swatchOf: number[];
+  /** The palette's named hues, offered as the choices for each control. */
+  namedColors: { name: string; hex: string }[];
 }
 
 interface LabState {
@@ -334,20 +336,55 @@ async function main() {
   // --- controls -------------------------------------------------------------
   // One picker per swatch, labelled by what the swatch stands for: a direction
   // for a direction palette, a slot for a slot one.
+  // Each control is a row of the palette's own hues, so assigning a colour is
+  // choosing from the scheme rather than dialling in an arbitrary one. The
+  // colour input stays on the end as an escape hatch for anything else.
   const slotsEl = document.getElementById("slots")!;
   groups.forEach((group, i) => {
     const row = document.createElement("div");
-    row.className = "row";
-    row.innerHTML = `<label>${group.label}</label>`;
-    const input = document.createElement("input");
-    input.type = "color";
-    input.value = state.hues[i]!;
-    input.addEventListener("input", () => {
-      state.hues[i] = input.value;
+    row.className = "swatchRow";
+
+    const label = document.createElement("label");
+    label.textContent = group.label;
+    row.appendChild(label);
+
+    const chips = document.createElement("div");
+    chips.className = "chips";
+
+    const custom = document.createElement("input");
+    custom.type = "color";
+    custom.title = "custom colour";
+
+    const select = (hex: string) => {
+      state.hues[i] = hex;
+      custom.value = hex;
+      // Mark whichever chip matches, so the current choice is visible at a
+      // glance across every row.
+      for (const chip of Array.from(chips.children)) {
+        chip.classList.toggle(
+          "on",
+          (chip as HTMLElement).dataset.hex === hex.toLowerCase(),
+        );
+      }
       refreshColors();
-    });
-    row.appendChild(input);
+    };
+
+    for (const named of mesh.namedColors) {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.style.background = named.hex;
+      chip.dataset.hex = named.hex.toLowerCase();
+      chip.title = named.name;
+      chip.addEventListener("click", () => select(named.hex));
+      chips.appendChild(chip);
+    }
+    row.appendChild(chips);
+
+    custom.addEventListener("input", () => select(custom.value));
+    row.appendChild(custom);
+
     slotsEl.appendChild(row);
+    select(state.hues[i]!);
   });
 
   // Shading steps a slot's hue by face kind, which a direction palette has no
@@ -402,6 +439,9 @@ async function main() {
     applyBackdrop();
   });
   applyBackdrop();
+  const copyLabel =
+    mesh.mode === "direction" ? "Copy colors block" : "Copy palette JSON";
+  document.getElementById("copy")!.textContent = copyLabel;
   document.getElementById("copy")!.addEventListener("click", () => {
     const toRgb = (h: string) => {
       const [r, g, b] = hexToRgb(h);
@@ -413,25 +453,33 @@ async function main() {
     };
     // Emit whichever palette shape is in play, so the result pastes straight
     // into PALETTES in src/palette.ts.
-    const payload =
-      mesh.mode === "direction"
-        ? {
-            name: "custom",
-            mode: "direction",
-            colors: Object.fromEntries(
-              groups.map((g, i) => [g.label, toRgb(state.hues[i]!)]),
-            ),
-          }
-        : {
-            name: "custom",
-            mode: "slot",
-            colors: state.hues.map(toRgb),
-            shading: state.shading,
-          };
-    void navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+    // For a direction palette, emit the source line as it would be written in
+    // src/palette.ts -- naming the hues rather than spelling out their values,
+    // since that is what makes the assignment readable at a glance.
+    if (mesh.mode === "direction") {
+      const nameOf = new Map(
+        mesh.namedColors.map((n) => [n.hex.toLowerCase(), n.name]),
+      );
+      const body = groups
+        .map((g, i) => {
+          const hex = state.hues[i]!.toLowerCase();
+          const named = nameOf.get(hex);
+          return `    ${g.label}: ${named ? `NIGHT_OWL.${named}` : `hex("${hex}")`},`;
+        })
+        .join("\n");
+      void navigator.clipboard.writeText(`  colors: {\n${body}\n  },`);
+    } else {
+      const payload = {
+        name: "custom",
+        mode: "slot",
+        colors: state.hues.map(toRgb),
+        shading: state.shading,
+      };
+      void navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+    }
     const btn = document.getElementById("copy")!;
     btn.textContent = "Copied";
-    setTimeout(() => (btn.textContent = "Copy palette JSON"), 1200);
+    setTimeout(() => (btn.textContent = copyLabel), 1200);
   });
 
   document.getElementById("paletteName")!.textContent = `· ${mesh.palette}`;
