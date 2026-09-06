@@ -46,10 +46,17 @@ npm install
 npm run generate          # writes out/nh-logo.{obj,mtl,stl,json}
 npm run lab               # interactive preview at http://localhost:5173
 npx tsx tools/render-png.ts   # headless isometric render to out/preview.png
+npx tsx tools/render-png.ts --transparent   # ...with an alpha background
 ```
 
 `generate` takes `--palette <name>`, `--out <dir>` and `--name <basename>`.
+`render-png.ts` takes `--palette <name>`, `--out <file>` and `--transparent`.
 `lab` reads `PORT` and `PALETTE`.
+
+**`--transparent`** writes RGBA with the background fully transparent, so the
+logo drops onto any surface without carrying a colour with it. Alpha is binary:
+a pixel is either the logo or it is not. Without the flag the background is the
+usual flat dark colour.
 
 ### Output files
 
@@ -143,6 +150,10 @@ and paste the result.
   honest. The back/side shading sliders appear only for slot palettes, being
   meaningless for the flat ones.
 - `PALETTE=nightowl npm run lab` previews a different palette
+- the canvas clears to **transparent**, and the Backdrop button cycles the
+  stage behind it: checker (the image-editor convention for "empty", and a
+  preview of what `--transparent` writes), dark, and light. Worth cycling —
+  a palette that reads well on one ground can disappear against another.
 
 Geometry is rebuilt per request, but **the lab does not hot-reload it**: `tsx`
 caches the imported modules, so an edit under `src/geometry/` needs the server

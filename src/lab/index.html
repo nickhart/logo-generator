@@ -15,8 +15,19 @@
     background: var(--bg); color: var(--text);
     font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
-  #stage { flex: 1; position: relative; min-width: 0; }
-  canvas { display: block; width: 100%; height: 100%; }
+  /*
+   * The canvas clears to transparent, so the stage's own background is what
+   * reads as "empty". The checker is the image-editor convention for it, and
+   * previews what --transparent writes to PNG.
+   */
+  #stage { flex: 1; position: relative; min-width: 0; background: var(--bg); }
+  #stage.checker {
+    --c1: #1b1e24; --c2: #23262e;
+    background:
+      repeating-conic-gradient(var(--c1) 0% 25%, var(--c2) 0% 50%) 0 0 / 24px 24px;
+  }
+  #stage.light { background: #e9ecf2; }
+  canvas { display: block; width: 100%; height: 100%; position: relative; }
   #panel {
     width: 260px; flex-shrink: 0; padding: 18px;
     background: var(--panel); border-left: 1px solid var(--line);
@@ -47,6 +58,8 @@
     position: absolute; left: 14px; bottom: 12px;
     color: var(--muted); font-size: 11px; pointer-events: none;
   }
+  /* The muted grey vanishes on the light backdrop. */
+  #stage.light .hint { color: #6a7183; }
 </style>
 </head>
 <body>
@@ -74,6 +87,9 @@
     <button id="front">Front</button>
     <button id="top">Top</button>
     <button id="spin">Toggle spin</button>
+
+    <h2>Backdrop</h2>
+    <button id="backdrop">Checker</button>
 
     <h2>Model</h2>
     <div class="stat"><span>triangles</span><b id="tris">–</b></div>

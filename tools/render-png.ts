@@ -33,12 +33,23 @@ function crc32(buf: Buffer): number {
   return ~c >>> 0;
 }
 
-function png(width: number, height: number, rgb: Uint8Array): Buffer {
-  const raw = Buffer.alloc(height * (width * 3 + 1));
+/**
+ * Encode a PNG. With `alpha`, writes RGBA (colour type 6) so background pixels
+ * can be fully transparent; otherwise truecolour RGB, as before.
+ */
+function png(
+  width: number,
+  height: number,
+  pixels: Uint8Array,
+  alpha: boolean,
+): Buffer {
+  const stride = alpha ? 4 : 3;
+  const rowBytes = width * stride;
+  const raw = Buffer.alloc(height * (rowBytes + 1));
   for (let y = 0; y < height; y++) {
-    raw[y * (width * 3 + 1)] = 0; // no per-scanline filter
-    rgb.subarray(y * width * 3, (y + 1) * width * 3).forEach((v, i) => {
-      raw[y * (width * 3 + 1) + 1 + i] = v;
+    raw[y * (rowBytes + 1)] = 0; // no per-scanline filter
+    pixels.subarray(y * rowBytes, (y + 1) * rowBytes).forEach((v, i) => {
+      raw[y * (rowBytes + 1) + 1 + i] = v;
     });
   }
   const chunk = (type: string, data: Buffer): Buffer => {
@@ -53,7 +64,7 @@ function png(width: number, height: number, rgb: Uint8Array): Buffer {
   ihdr.writeUInt32BE(width, 0);
   ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8; // bit depth
-  ihdr[9] = 2; // truecolour
+  ihdr[9] = alpha ? 6 : 2; // truecolour, with or without alpha
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk("IHDR", ihdr),
@@ -69,6 +80,9 @@ const palette = getPalette(
 const outPath =
   (process.argv.includes("--out") && process.argv[process.argv.indexOf("--out") + 1]) ||
   "out/preview.png";
+// The logo is the deliverable, so an alpha background is often what you want:
+// it drops onto any surface without carrying a colour along with it.
+const transparent = process.argv.includes("--transparent");
 
 const mesh = buildLogo(DEFAULT_LOGO_OPTIONS);
 
@@ -178,5 +192,22 @@ for (const tri of mesh.triangles) {
   }
 }
 
-writeFileSync(outPath, png(W, H, color));
-console.log(`wrote ${outPath} (${W}x${H}, palette ${palette.name})`);
+if (transparent) {
+  // The depth buffer already says which pixels the logo covers: anything still
+  // at Infinity was never drawn, so it is background and gets alpha 0.
+  const rgba = new Uint8Array(W * H * 4);
+  for (let i = 0; i < W * H; i++) {
+    const covered = depth[i] !== Infinity;
+    rgba[i * 4] = covered ? color[i * 3]! : 0;
+    rgba[i * 4 + 1] = covered ? color[i * 3 + 1]! : 0;
+    rgba[i * 4 + 2] = covered ? color[i * 3 + 2]! : 0;
+    rgba[i * 4 + 3] = covered ? 255 : 0;
+  }
+  writeFileSync(outPath, png(W, H, rgba, true));
+} else {
+  writeFileSync(outPath, png(W, H, color, false));
+}
+console.log(
+  `wrote ${outPath} (${W}x${H}, palette ${palette.name}` +
+    `${transparent ? ", transparent" : ""})`,
+);

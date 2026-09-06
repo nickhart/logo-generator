@@ -131,7 +131,14 @@ const hexToRgb = (hex: string): [number, number, number] => {
 
 async function main() {
   const canvas = document.getElementById("gl") as HTMLCanvasElement;
-  const gl = canvas.getContext("webgl", { antialias: true });
+  const gl = canvas.getContext("webgl", {
+    antialias: true,
+    // An alpha buffer, so clearing to 0 lets the backdrop show through. Without
+    // premultiplication the edge pixels blend against the backdrop cleanly
+    // rather than picking up a dark fringe.
+    alpha: true,
+    premultipliedAlpha: false,
+  });
   if (!gl) throw new Error("WebGL is unavailable in this browser");
 
   const mesh: MeshData = await (await fetch("./model.json")).json();
@@ -299,7 +306,10 @@ async function main() {
     }
     gl!.viewport(0, 0, canvas.width, canvas.height);
     gl!.enable(gl!.DEPTH_TEST);
-    gl!.clearColor(0.078, 0.086, 0.102, 1);
+    // Clear to fully transparent: whatever the stage is wearing shows through,
+    // so the backdrop is a CSS concern and the canvas shows only the logo --
+    // which is also a preview of what `--transparent` writes to PNG.
+    gl!.clearColor(0, 0, 0, 0);
     gl!.clear(gl!.COLOR_BUFFER_BIT | gl!.DEPTH_BUFFER_BIT);
 
     const eye = [
@@ -373,6 +383,25 @@ async function main() {
   document.getElementById("spin")!.addEventListener("click", () => {
     spinning = !spinning;
   });
+
+  // Cycle the stage's backdrop. Checker reads as "empty" the way an image
+  // editor does; dark and light are for judging the logo against a real ground,
+  // since a palette that works on one can fail on the other.
+  const BACKDROPS = ["checker", "dark", "light"] as const;
+  const stage = document.getElementById("stage")!;
+  const backdropBtn = document.getElementById("backdrop")!;
+  let backdrop = 0;
+  const applyBackdrop = () => {
+    const name = BACKDROPS[backdrop]!;
+    stage.classList.toggle("checker", name === "checker");
+    stage.classList.toggle("light", name === "light");
+    backdropBtn.textContent = name[0]!.toUpperCase() + name.slice(1);
+  };
+  backdropBtn.addEventListener("click", () => {
+    backdrop = (backdrop + 1) % BACKDROPS.length;
+    applyBackdrop();
+  });
+  applyBackdrop();
   document.getElementById("copy")!.addEventListener("click", () => {
     const toRgb = (h: string) => {
       const [r, g, b] = hexToRgb(h);
