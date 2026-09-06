@@ -45,18 +45,60 @@ npm install
 
 npm run generate          # writes out/nh-logo.{obj,mtl,stl,json}
 npm run lab               # interactive preview at http://localhost:5173
-npx tsx tools/render-png.ts   # headless isometric render to out/preview.png
-npx tsx tools/render-png.ts --transparent   # ...with an alpha background
+npm run preview           # isometric render to out/preview.png
+npm run svg               # vector logo to out/nh-logo.svg
+npm run favicon           # favicon.ico + PNGs + apple-touch-icon
 ```
 
-`generate` takes `--palette <name>`, `--out <dir>` and `--name <basename>`.
-`render-png.ts` takes `--palette <name>`, `--out <file>` and `--transparent`.
-`lab` reads `PORT` and `PALETTE`.
+| flag            | `generate` | `preview` | `svg` | `favicon` |
+| --------------- | ---------- | --------- | ----- | --------- |
+| `--palette`     | ✓          | ✓         | ✓     | ✓         |
+| `--out`         | dir        | file      | file  | dir       |
+| `--size`        |            | ✓         | ✓     |           |
+| `--transparent` |            | ✓         |       |           |
+| `--fit`         |            | ✓         | on    | on        |
+| `--background`  |            |           | ✓     |           |
+
+`lab` reads `PORT` and `PALETTE` from the environment instead.
 
 **`--transparent`** writes RGBA with the background fully transparent, so the
-logo drops onto any surface without carrying a colour with it. Alpha is binary:
-a pixel is either the logo or it is not. Without the flag the background is the
-usual flat dark colour.
+logo drops onto any surface without carrying a colour with it.
+
+**`--fit`** crops to the logo and rescales it to fill the frame. The isometric
+view leaves the mark on under 40% of the canvas and off-centre, which is fine
+for a preview and wasteful for an icon; fitting takes it to about 50%. It is on
+by default for `svg` and `favicon` (pass `--no-fit` to `svg` to keep the
+original framing) and off for `preview`.
+
+## Web and icon output
+
+**SVG** (`npm run svg`) is the form to use on a page: one file at every size,
+crisp on any display, about 5 kB. It is transparent unless `--background` is
+given.
+
+The renderer has no depth buffer, so faces are ordered back-to-front. A depth
+sort alone is not enough here -- most triangle pairs in this mesh have
+overlapping depth ranges, because the letters are perpendicular slabs that each
+span most of the view. So the exporter asks, for each overlapping pair, which
+face is nearer where they actually meet, and topologically sorts those
+constraints. Three pairs occlude each other both ways and have no correct order
+without splitting a triangle; those cycles are dropped and the depth sort stands
+in. The output matches the depth-buffered PNG pixel for pixel.
+
+**Favicons** (`npm run favicon`) writes a set:
+
+- `favicon.ico` — 16, 32 and 48 px in one file, the sizes browsers pick between.
+  Entries are PNGs rather than BMPs, which every current browser reads and which
+  keeps the alpha.
+- `favicon-16/32/192/512.png` — transparent, for `<link rel="icon">`.
+- `apple-touch-icon.png` — 180 px and **opaque**, because iOS composites onto a
+  tile and a transparent icon comes out black. It uses the palette's own
+  background colour when it names one, and gets extra margin since iOS rounds
+  the corners.
+
+One caveat worth knowing: **at 16 px this logo is not legible.** It reads as a
+coloured blob. That is the artwork, not the pipeline -- an isometric 3D NH has
+more internal structure than 256 pixels can hold. 32 px and up are fine.
 
 ### Output files
 
@@ -177,10 +219,12 @@ transpiled per request.
 
 ```
 src/geometry/   letters, triangulation, extrusion, composition, face direction
-src/export/     obj+mtl, binary stl, json
+src/render/     shared isometric camera, software rasteriser, png encoder
+src/export/     obj+mtl, binary stl, json, svg, ico
 src/palette.ts  slot and direction palettes
 src/lab/        browser preview
-tools/          generate, serve-lab, render-png, preview-ascii
+tools/          generate, serve-lab, render-png, render-svg, render-favicon,
+                preview-ascii, verify
 reference/      the original N64 model, untouched
 ```
 

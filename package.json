@@ -11,6 +11,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "verify": "tsx tools/verify.ts",
     "preview": "tsx tools/render-png.ts",
+    "svg": "tsx tools/render-svg.ts",
+    "favicon": "tsx tools/render-favicon.ts",
     "outline": "tsx tools/preview-ascii.ts"
   },
   "devDependencies": {
