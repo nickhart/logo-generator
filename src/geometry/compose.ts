@@ -1,5 +1,6 @@
 import type { ColorSlot, Mesh, Triangle, Vec3 } from "./types.js";
 import { rotateY, translate, vec3 } from "./vec.js";
+import { classifyDirection } from "./direction.js";
 import { extrude } from "./extrude.js";
 import {
   N64_METRICS,
@@ -77,6 +78,9 @@ function transformTriangle(
     normal: n,
     colorSlot: tri.colorSlot,
     kind: tri.kind,
+    // Classified here rather than in the extruder: the direction wanted is the
+    // one in the finished logo, after the letter has been turned onto its wall.
+    direction: classifyDirection(n),
   };
 }
 

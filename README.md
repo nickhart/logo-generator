@@ -62,12 +62,17 @@ npx tsx tools/render-png.ts   # headless isometric render to out/preview.png
 
 ## Colours
 
-Palettes live in `src/palette.ts`. A palette is four base hues plus a per-face
-shading table:
+Palettes live in `src/palette.ts`, and colour the logo one of two ways.
+
+### Slot palettes
+
+Colour belongs to the **letter**: each placement is assigned hues for its caps
+and its sides, and a per-face-kind table dims them so edges stay readable.
 
 ```ts
-export const N64_PALETTE: Palette = {
+export const N64_PALETTE: SlotPalette = {
   name: "n64",
+  mode: "slot",
   colors: [rgb(6,147,48), rgb(2,34,169), rgb(255,24,19), rgb(255,192,1)],
   shading: { front: 1.0, back: 0.72, side: 0.86 },
 };
@@ -78,11 +83,53 @@ how the original reads: it is self-illuminated and flat, so faces are not lit �
 the front sits at full strength and the back and sides step down, which is what
 keeps the edges legible.
 
-**To swap in your own palette**, add an entry to `PALETTES` and pass
-`--palette <name>`. Keep the four slots and the shading table and everything
-downstream — OBJ materials, the lab, the PNG renderer — picks it up. The lab's
-"Copy palette JSON" button emits an entry in exactly this shape, so you can dial
-colours in visually and paste the result.
+### Direction palettes
+
+Colour belongs to the **logo**: every face pointing the same way gets the same
+colour, whichever letter it came from. So the N's face and the H's side walls
+that face that same way are one colour, and the letters read as surfaces of a
+single object rather than as two separately-painted letters.
+
+```ts
+export const NIGHTOWL_PALETTE: DirectionPalette = {
+  name: "nightowl",
+  mode: "direction",
+  colors: { north: blue, south: blue, east: navy, west: navy,
+            up: purple, down: coral, diagonal: teal },
+};
+```
+
+These are **flat** — no shading table, and the renderers skip their lighting
+term. Stepping brightness per face kind would make two faces of the same
+assigned colour render differently, which is the one thing this mode exists to
+prevent.
+
+The seven directions are defined in `src/geometry/direction.ts`, and they are
+also just a useful vocabulary for talking about the logo's surfaces — "the face
+of the N" is ambiguous once the letters sit on different walls, `north` is not:
+
+| direction  | points toward | what lands there                          |
+| ---------- | ------------- | ----------------------------------------- |
+| `north`    | −z            | the N's face, and H side walls facing −z  |
+| `south`    | +z            | the N's back, and H side walls facing +z  |
+| `east`     | +x            | the H's back, and N side walls facing +x  |
+| `west`     | −x            | the H's face, and N side walls facing −x  |
+| `up`       | +y            | every top, the H's crossbar included      |
+| `down`     | −y            | every bottom, the H's crossbar included   |
+| `diagonal` | off-axis      | the long edges of the N's diagonal stroke |
+
+`diagonal` is tested for first, and deliberately so: those normals are about
+`(±0.799, ±0.601, 0)`, and that 0.601 in y is large enough that classifying by
+the dominant component would file half the diagonal under `up`/`down` and paint
+it as a top.
+
+### Swapping one in
+
+Add an entry to `PALETTES` and pass `--palette <name>` (the lab reads `PALETTE`
+from the environment instead). Everything downstream — OBJ materials, the lab,
+the PNG renderer — picks up either mode. The lab's "Copy palette JSON" button
+emits an entry in whichever shape is active, so you can dial colours in visually
+and paste the result.
 
 ## The lab
 
@@ -91,17 +138,23 @@ colours in visually and paste the result.
 - opens on the **isometric** view (45° around, `atan(1/√2)` up), with front/top
   presets and a spin toggle
 - drag to orbit, scroll to zoom
-- live colour pickers per slot and sliders for the back/side shading, applying
-  the same rule as `src/palette.ts` so the preview stays honest
-- geometry is rebuilt per request, so editing the generator and reloading is
-  enough to see the change
+- live colour pickers — one per slot, or one per direction for a direction
+  palette — applying the same rules as `src/palette.ts` so the preview stays
+  honest. The back/side shading sliders appear only for slot palettes, being
+  meaningless for the flat ones.
+- `PALETTE=nightowl npm run lab` previews a different palette
+
+Geometry is rebuilt per request, but **the lab does not hot-reload it**: `tsx`
+caches the imported modules, so an edit under `src/geometry/` needs the server
+restarted. Editing `src/lab/lab.ts` is fine to just reload, since that is
+transpiled per request.
 
 ## Layout
 
 ```
-src/geometry/   letters, triangulation, extrusion, composition
+src/geometry/   letters, triangulation, extrusion, composition, face direction
 src/export/     obj+mtl, binary stl, json
-src/palette.ts  colour slots and shading
+src/palette.ts  slot and direction palettes
 src/lab/        browser preview
 tools/          generate, serve-lab, render-png, preview-ascii
 reference/      the original N64 model, untouched

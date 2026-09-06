@@ -1,11 +1,14 @@
-import type { Mesh, Triangle, Vec3 } from "../geometry/types.js";
-import { resolveColor, type Palette } from "../palette.js";
+import type { Mesh, Vec3 } from "../geometry/types.js";
+import { colorKey, resolveColor, type Rgb, type Palette } from "../palette.js";
 
 const f = (n: number): string => n.toFixed(4);
 
-/** Key a face by the colour it resolves to, so caps and sides stay distinct. */
-const materialName = (tri: Triangle): string =>
-  `slot${tri.colorSlot}_${tri.kind}`;
+/**
+ * Name a material after the group of faces sharing it: the direction for a
+ * direction palette, or slot and kind for a slot one.
+ */
+const materialName = (key: string, palette: Palette): string =>
+  palette.mode === "direction" ? `dir_${key}` : `slot${key}`;
 
 export interface ObjExport {
   obj: string;
@@ -42,16 +45,18 @@ export function toObj(
     return id;
   };
 
-  // Group faces by material so the OBJ carries one usemtl run per colour.
-  const groups = new Map<string, string[]>();
+  // Group faces by material so the OBJ carries one usemtl run per colour. The
+  // colour is captured here, where the triangle is in hand, rather than parsed
+  // back out of the material name later.
+  const groups = new Map<string, { color: Rgb; faces: string[] }>();
   for (const tri of mesh.triangles) {
-    const name = materialName(tri);
+    const name = materialName(colorKey(palette, tri), palette);
     const vs = [vertexId(tri.a), vertexId(tri.b), vertexId(tri.c)];
     const n = normalId(tri.normal);
     const face = `f ${vs.map((v) => `${v}//${n}`).join(" ")}`;
     const bucket = groups.get(name);
-    if (bucket) bucket.push(face);
-    else groups.set(name, [face]);
+    if (bucket) bucket.faces.push(face);
+    else groups.set(name, { color: resolveColor(palette, tri), faces: [face] });
   }
 
   const objLines: string[] = [
@@ -64,8 +69,8 @@ export function toObj(
     ...normalLines,
     "",
   ];
-  for (const [name, faces] of groups) {
-    objLines.push(`usemtl ${name}`, ...faces, "");
+  for (const [name, group] of groups) {
+    objLines.push(`usemtl ${name}`, ...group.faces, "");
   }
 
   const mtlLines: string[] = [
@@ -73,11 +78,8 @@ export function toObj(
     `# palette: ${palette.name}`,
     "",
   ];
-  for (const name of groups.keys()) {
-    const [, slotPart, kindPart] = name.match(/^slot(\d)_(\w+)$/) ?? [];
-    const slot = Number(slotPart) as 0 | 1 | 2 | 3;
-    const kind = kindPart as Triangle["kind"];
-    const c = resolveColor(palette, slot, kind);
+  for (const [name, group] of groups) {
+    const c = group.color;
     const kd = [c.r / 255, c.g / 255, c.b / 255].map((n) => n.toFixed(4));
     mtlLines.push(
       `newmtl ${name}`,

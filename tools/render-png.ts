@@ -142,9 +142,13 @@ for (const tri of mesh.triangles) {
   const p2 = project(tri.c);
   if (!p0 || !p1 || !p2) continue;
 
-  const base = resolveColor(palette, tri.colorSlot, tri.kind);
+  const base = resolveColor(palette, tri);
+  // A direction palette already says exactly what every face's colour is, so
+  // lighting it would defeat the point: two faces assigned the same colour have
+  // to render the same. Slot palettes keep the light touch of directional
+  // shading that reads as depth.
   const lambert = Math.max(dot(norm(tri.normal), light), 0);
-  const shade = 0.82 + 0.18 * lambert;
+  const shade = palette.mode === "direction" ? 1 : 0.82 + 0.18 * lambert;
   const rgb = [base.r * shade, base.g * shade, base.b * shade];
 
   const minX = Math.max(0, Math.floor(Math.min(p0[0], p1[0], p2[0])));

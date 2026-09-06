@@ -1,3 +1,5 @@
+import type { FaceDirection } from "./direction.js";
+
 /** A point in the 2D letter design plane (x = advance, y = up). */
 export interface Vec2 {
   x: number;
@@ -34,6 +36,13 @@ export interface Triangle {
   normal: Vec3;
   colorSlot: ColorSlot;
   kind: FaceKind;
+  /**
+   * Which way the face points once placed, for palettes that colour by
+   * direction rather than by slot. Set during composition, because it is a
+   * property of the face in the finished logo -- a letter's own front cap
+   * points a different way on each wall of the box.
+   */
+  direction?: FaceDirection;
 }
 
 /** A complete generated model. */

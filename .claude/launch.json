@@ -6,6 +6,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "lab"],
       "port": 5173
+    },
+    {
+      "name": "lab-nightowl",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "lab"],
+      "env": { "PALETTE": "nightowl" },
+      "port": 5173
     }
   ]
 }
