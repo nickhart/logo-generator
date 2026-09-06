@@ -1,6 +1,6 @@
 import type { Mesh } from "../geometry/types.js";
 import { colorKey, resolveColor, toHex, type Palette } from "../palette.js";
-import { isometricCamera } from "../render/camera.js";
+import { isometricCamera, type CameraOptions } from "../render/camera.js";
 
 export interface SvgOptions {
   width: number;
@@ -13,6 +13,8 @@ export interface SvgOptions {
    * half the canvas, off-centre, which wastes the space it is given on a page.
    */
   fit?: number;
+  /** Camera angles; defaults to true isometric. */
+  camera?: CameraOptions;
 }
 
 const f = (n: number): string => {
@@ -163,7 +165,7 @@ function resolveOcclusion(painted: Painted[]): Painted[] {
 
 export function toSvg(mesh: Mesh, palette: Palette, opts: SvgOptions): string {
   const { width, height, background } = opts;
-  const camera = isometricCamera(mesh, width, height);
+  const camera = isometricCamera(mesh, width, height, opts.camera ?? {});
 
   const painted: Painted[] = [];
   for (const tri of mesh.triangles) {

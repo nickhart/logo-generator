@@ -25,12 +25,21 @@ const background = arg("background");
 // --no-fit is there for when the original framing is wanted.
 const fit = process.argv.includes("--no-fit") ? undefined : Number(arg("fit") ?? 0.04);
 
+// Degrees above the horizon. The default is a shallow view that favours the
+// letterforms; pass 35.26 for a true isometric projection.
+const pitchArg = arg("pitch");
+const camera =
+  pitchArg !== undefined && Number.isFinite(Number(pitchArg))
+    ? { pitch: (Number(pitchArg) * Math.PI) / 180 }
+    : undefined;
+
 const mesh = buildLogo(DEFAULT_LOGO_OPTIONS);
 const svg = toSvg(mesh, palette, {
   width: size,
   height: size,
   ...(background ? { background } : {}),
   ...(fit !== undefined && Number.isFinite(fit) ? { fit } : {}),
+  ...(camera ? { camera } : {}),
 });
 
 writeFileSync(outPath, svg);

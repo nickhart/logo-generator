@@ -252,7 +252,10 @@ async function main() {
   // --- camera ---------------------------------------------------------------
   // The isometric default: equal angles onto all three axes, which is the view
   // that shows both letters at once.
-  const ISO = { yaw: Math.PI / 4, pitch: Math.atan(1 / Math.SQRT2) };
+  // Matches DEFAULT_PITCH in src/render/camera.ts: shallower than a true
+  // isometric view, so the letters read as letters rather than as lids. Keep
+  // the two in step, or the lab stops previewing what the exporters produce.
+  const ISO = { yaw: Math.PI / 4, pitch: (20 * Math.PI) / 180 };
   let yaw = ISO.yaw;
   let pitch = ISO.pitch;
   // Frame the model from its own bounds rather than a hand-picked number.

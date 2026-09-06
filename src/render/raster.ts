@@ -1,7 +1,7 @@
 import { deflateSync } from "node:zlib";
 import type { Mesh, Vec3 } from "../geometry/types.js";
 import { resolveColor, type Palette } from "../palette.js";
-import { isometricCamera } from "./camera.js";
+import { isometricCamera, type CameraOptions } from "./camera.js";
 
 /**
  * Software rasteriser and PNG encoder.
@@ -80,6 +80,8 @@ export interface RenderOptions {
    * icon, where every pixel counts. Undefined leaves the framing alone.
    */
   fit?: number;
+  /** Camera angles; defaults to true isometric. */
+  camera?: CameraOptions;
 }
 
 /**
@@ -106,7 +108,7 @@ export function render(
   const RW = W * SS;
   const RH = H * SS;
 
-  const camera = isometricCamera(mesh, RW, RH);
+  const camera = isometricCamera(mesh, RW, RH, opts.camera ?? {});
 
   const color = new Uint8Array(RW * RH * 3);
   const depth = new Float64Array(RW * RH).fill(Infinity);

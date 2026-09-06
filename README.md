@@ -45,7 +45,7 @@ npm install
 
 npm run generate          # writes out/nh-logo.{obj,mtl,stl,json}
 npm run lab               # interactive preview at http://localhost:5173
-npm run preview           # isometric render to out/preview.png
+npm run preview           # render to out/preview.png
 npm run svg               # vector logo to out/nh-logo.svg
 npm run favicon           # favicon.ico + PNGs + apple-touch-icon
 ```
@@ -57,6 +57,7 @@ npm run favicon           # favicon.ico + PNGs + apple-touch-icon
 | `--size`        |            | ✓         | ✓     |           |
 | `--transparent` |            | ✓         |       |           |
 | `--fit`         |            | ✓         | on    | on        |
+| `--pitch`       |            | ✓         | ✓     |           |
 | `--background`  |            |           | ✓     |           |
 
 `lab` reads `PORT` and `PALETTE` from the environment instead.
@@ -64,11 +65,20 @@ npm run favicon           # favicon.ico + PNGs + apple-touch-icon
 **`--transparent`** writes RGBA with the background fully transparent, so the
 logo drops onto any surface without carrying a colour with it.
 
-**`--fit`** crops to the logo and rescales it to fill the frame. The isometric
-view leaves the mark on under 40% of the canvas and off-centre, which is fine
-for a preview and wasteful for an icon; fitting takes it to about 50%. It is on
-by default for `svg` and `favicon` (pass `--no-fit` to `svg` to keep the
-original framing) and off for `preview`.
+**`--fit`** crops to the logo and rescales it to fill the frame. The projection
+leaves the mark on under 40% of the canvas and off-centre, which is fine for a
+preview and wasteful for an icon; fitting takes it to about 50%. It is on by
+default for `svg` and `favicon` (pass `--no-fit` to `svg` to keep the original
+framing) and off for `preview`.
+
+**`--pitch <degrees>`** sets how far above the horizon the camera sits. The
+default is **20°**. A true isometric view is `atan(1/√2)` ≈ 35.26° -- the angle
+at which all three axes foreshorten equally, and what the N64 original uses --
+but it is steep: the top faces get nearly as much area as the fronts, so the
+logo reads as much like a plan view as an elevation and the letters squash. 20°
+gives the letterforms the picture while still leaving the tops enough area to
+carry their own colour; below about 15° they thin to slivers and that colour
+drops out. Pass `--pitch 35.26` for the textbook projection.
 
 ## Web and icon output
 
@@ -97,7 +107,7 @@ in. The output matches the depth-buffered PNG pixel for pixel.
   the corners.
 
 One caveat worth knowing: **at 16 px this logo is not legible.** It reads as a
-coloured blob. That is the artwork, not the pipeline -- an isometric 3D NH has
+coloured blob. That is the artwork, not the pipeline -- a 3D NH has
 more internal structure than 256 pixels can hold. 32 px and up are fine.
 
 ### Output files
@@ -143,8 +153,8 @@ single object rather than as two separately-painted letters.
 export const NIGHTOWL_PALETTE: DirectionPalette = {
   name: "nightowl",
   mode: "direction",
-  colors: { north: blue, south: blue, east: purple, west: purple,
-            up: teal, down: amber, diagonal: green },
+  colors: { north: blue, south: blue, east: teal, west: teal,
+            up: purple, down: amber, diagonal: green },
 };
 ```
 
@@ -190,8 +200,8 @@ and paste the result.
 
 `npm run lab` serves an interactive WebGL preview:
 
-- opens on the **isometric** view (45° around, `atan(1/√2)` up), with front/top
-  presets and a spin toggle
+- opens on the **default** view (45° around, 20° up, matching the exporters),
+  with front/top presets and a spin toggle
 - drag to orbit, scroll to zoom
 - one colour control per slot, or per direction for a direction palette,
   applying the same rules as `src/palette.ts` so the preview stays honest. Each
@@ -219,7 +229,7 @@ transpiled per request.
 
 ```
 src/geometry/   letters, triangulation, extrusion, composition, face direction
-src/render/     shared isometric camera, software rasteriser, png encoder
+src/render/     shared camera, software rasteriser, png encoder
 src/export/     obj+mtl, binary stl, json, svg, ico
 src/palette.ts  slot and direction palettes
 src/lab/        browser preview

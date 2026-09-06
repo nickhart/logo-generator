@@ -1,11 +1,15 @@
 import type { Mesh, Vec3 } from "../geometry/types.js";
 
 /**
- * The isometric camera the exporters share.
+ * The camera the exporters share.
  *
- * Both the raster and the vector renderer have to agree on framing, or the PNG
- * and the SVG of the same logo would not line up. Keeping the projection in one
- * place is what guarantees that.
+ * Every renderer has to agree on framing, or the PNG, the SVG and the favicons
+ * of the same logo would not line up. Keeping the projection in one place is
+ * what guarantees that.
+ *
+ * The view is isometric in arrangement -- 45 degrees around, looking down at a
+ * fixed angle -- but the default pitch is shallower than a true isometric one.
+ * See `DEFAULT_PITCH`.
  */
 
 const sub = (a: Vec3, b: Vec3): Vec3 => ({
@@ -31,12 +35,46 @@ export interface Camera {
 }
 
 /**
+ * True isometric: atan(1/sqrt 2) ~= 35.26 degrees, the angle at which all three
+ * axes foreshorten equally.
+ *
+ * Faithful to the geometry, but a steep look -- the top faces get nearly as
+ * much area as the fronts, so the logo reads as much like a plan view as an
+ * elevation and the letters squash vertically. Kept for anything that wants the
+ * textbook projection.
+ */
+export const ISO_PITCH = Math.atan(1 / Math.SQRT2);
+
+/**
+ * The default pitch: 20 degrees.
+ *
+ * Shallow enough that the N and the H read as letters rather than as a stack of
+ * lids, while still giving the top faces enough area to register as a surface
+ * -- which matters for a direction palette, where the tops carry their own
+ * colour. Below about 15 degrees they thin to slivers and that colour drops out
+ * of the logo entirely.
+ */
+export const DEFAULT_PITCH = (20 * Math.PI) / 180;
+
+export interface CameraOptions {
+  /** Radians above the horizon. Defaults to `DEFAULT_PITCH`. */
+  pitch?: number;
+  /** Radians around the vertical axis. Defaults to 45 degrees. */
+  yaw?: number;
+}
+
+/**
  * Frame a mesh isometrically: 45 degrees around, atan(1/sqrt 2) up.
  *
  * The camera is derived from the mesh's own bounds rather than hand-tuned
  * numbers, so it frames whatever the placements produce.
  */
-export function isometricCamera(mesh: Mesh, width: number, height: number): Camera {
+export function isometricCamera(
+  mesh: Mesh,
+  width: number,
+  height: number,
+  opts: CameraOptions = {},
+): Camera {
   let min = { x: Infinity, y: Infinity, z: Infinity };
   let max = { x: -Infinity, y: -Infinity, z: -Infinity };
   for (const t of mesh.triangles) {
@@ -69,8 +107,8 @@ export function isometricCamera(mesh: Mesh, width: number, height: number): Came
     }
   }
 
-  const yaw = Math.PI / 4;
-  const pitch = Math.atan(1 / Math.SQRT2);
+  const yaw = opts.yaw ?? Math.PI / 4;
+  const pitch = opts.pitch ?? DEFAULT_PITCH;
   // Pull back far enough that the bounding sphere fits, with a little air.
   const halfFov = Math.PI / 12;
   const dist = (radius / Math.sin(halfFov)) * 1.05;
